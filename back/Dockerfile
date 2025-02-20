@@ -1,14 +1,17 @@
-# Étape 1 : Utiliser une image officielle de Node.js (basée sur Debian)
-FROM node:22.12.0
+# Étape 1 : Utiliser une image officielle de Node.js
+FROM node:22.12.0-alpine
+
+RUN apk add --no-cache python3 make g++ openssl
 
 # Étape 2 : Définir le répertoire de travail
 WORKDIR /app
 
 # Étape 3 : Copier les fichiers du projet
-COPY package.json package-lock.json ./
+COPY package.json ./
 
-# Étape 4 : Installer les dépendances NPM
+# Étape 4 : Installer les dépendances
 RUN npm install
+RUN npm rebuild bcrypt --build-from-source
 
 # Étape 5 : Copier le reste des fichiers
 COPY . .

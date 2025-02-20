@@ -1,0 +1,32 @@
+services:
+  back:
+    build:
+      context: ./back
+      dockerfile: Dockerfile
+    container_name: back_container
+
+    ports:
+      - "3000:3000"
+    env_file:
+      - ./back/.env
+    volumes:
+      - ./back/dev.db:/app/dev.db
+    command: ["sh", "-c", "npx prisma migrate deploy && node server.js"]
+    networks:
+      - app_network
+
+  front:
+    build:
+      context: ./front
+      dockerfile: Dockerfile
+    container_name: front_container
+    ports:
+      - "8080:80"
+    depends_on:
+      - back
+    networks:
+      - app_network
+
+networks:
+  app_network:
+    driver: bridge
