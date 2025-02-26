@@ -6,6 +6,7 @@ import './assets/main.css'
 
 // Configure axios defaults
 import axios from 'axios'
+console.log("Base URL API:", axios.defaults.baseURL);
 axios.defaults.baseURL = import.meta.env.VITE_API_URL
 
 // If there's a token in localStorage, set it in axios defaults

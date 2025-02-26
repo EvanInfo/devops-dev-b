@@ -8,6 +8,7 @@ COPY . .
 ARG VITE_API_URL
 ENV VITE_API_URL=${VITE_API_URL}
 
+RUN echo "🚀 VITE_API_URL au build : $VITE_API_URL"  # Affiche la valeur de VITE_API_URL
 RUN npm run build
 
 FROM nginx:alpine

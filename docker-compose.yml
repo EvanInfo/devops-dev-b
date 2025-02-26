@@ -1,9 +1,10 @@
 services:
   back:
+    image: zucchiattievalback
     build:
       context: ./back
       dockerfile: Dockerfile
-    container_name: back_container
+    container_name: back_container_zucchiatti
 
     ports:
       - "3000:3000"
@@ -16,12 +17,13 @@ services:
       - app_network
 
   front:
+    image: zucchiattievalfront
     build:
       context: ./front
       dockerfile: Dockerfile
       args:
-        VITE_API_URL: "http://localhost:3000"
-    container_name: front_container
+        VITE_API_URL: "https://nszucchiattievanbceqxgdg-container-back-zucchiatti.functions.fnc.fr-par.scw.cloud"
+    container_name: front_container_zucchiatti
     ports:
       - "8080:80"
     depends_on:
