@@ -64,6 +64,13 @@ jobs:
       - name: Log in to Scaleway Container Registry
         run: echo "${{ secrets.SCW_SECRET_KEY }}" | docker login rg.fr-par.scw.cloud -u _json_key --password-stdin
 
+      - name: Configure Scaleway CLI authentication
+        run: |
+          scw config set access-key=${{ secrets.SCW_ACCESS_KEY }}
+          scw config set secret-key=${{ secrets.SCW_SECRET_KEY }}
+          scw config set default-organization-id=${{ secrets.SCW_ORGANIZATION_ID }}
+          scw config set default-project-id=${{ secrets.SCW_PROJECT_ID }}
+
       - name: Deploy backend container
         run: |
           scw container container update 25ce846e-43ef-45aa-8550-2cc99ce18a8e \
@@ -75,6 +82,7 @@ jobs:
         run: |
           BACKEND_URL=$(scw container container get 25ce846e-43ef-45aa-8550-2cc99ce18a8e -o json | jq -r '.domain_name')
           echo "BACKEND_URL=$BACKEND_URL" >> $GITHUB_ENV
+  
 
   build-and-push-frontend:
     name: Build and Push Frontend Image
@@ -120,6 +128,13 @@ jobs:
 
       - name: Log in to Scaleway Container Registry
         run: echo "${{ secrets.SCW_SECRET_KEY }}" | docker login rg.fr-par.scw.cloud -u _json_key --password-stdin
+
+      - name: Configure Scaleway CLI authentication
+        run: |
+          scw config set access-key=${{ secrets.SCW_ACCESS_KEY }}
+          scw config set secret-key=${{ secrets.SCW_SECRET_KEY }}
+          scw config set default-organization-id=${{ secrets.SCW_ORGANIZATION_ID }}
+          scw config set default-project-id=${{ secrets.SCW_PROJECT_ID }}
 
       - name: Deploy frontend container
         run: |
