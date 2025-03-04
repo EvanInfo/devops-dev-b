@@ -52,14 +52,18 @@ jobs:
     needs: build-and-push-backend
     steps:
 
-      - name: Debug Scaleway CLI
+      - name: Install Scaleway CLI (again)
         run: |
-          which scw || echo "❌ scw introuvable"
-          scw version || echo "❌ Impossible d'exécuter scw"
+          curl -fsSL https://github.com/scaleway/scaleway-cli/releases/download/v2.37.0/scaleway-cli_2.37.0_linux_amd64 -o scw
+          chmod +x scw
+          sudo mv scw /usr/local/bin/scw
+          echo "/usr/local/bin" >> $GITHUB_PATH
+          which scw
+          scw version
 
       - name: Deploy backend container
         run: |
-          /usr/local/bin/scw container container update 25ce846e-43ef-45aa-8550-2cc99ce18a8e \
+          scw container container update 25ce846e-43ef-45aa-8550-2cc99ce18a8e \
             image=rg.fr-par.scw.cloud/namespace-zucchiatti-evan/zucchiattievalback:latest \
             min-scale=0 max-scale=1 cpu-limit=100 memory-limit=128 \
             port=3000
@@ -77,6 +81,15 @@ jobs:
       - name: Checkout repository
         uses: actions/checkout@v4
 
+      - name: Install Scaleway CLI (again)
+        run: |
+          curl -fsSL https://github.com/scaleway/scaleway-cli/releases/download/v2.37.0/scaleway-cli_2.37.0_linux_amd64 -o scw
+          chmod +x scw
+          sudo mv scw /usr/local/bin/scw
+          echo "/usr/local/bin" >> $GITHUB_PATH
+          which scw
+          scw version
+
       - name: Log in to Scaleway Container Registry
         run: echo "${{ secrets.SCW_SECRET_KEY }}" | docker login rg.fr-par.scw.cloud -u _json_key --password-stdin
 
@@ -92,6 +105,16 @@ jobs:
     runs-on: ubuntu-latest
     needs: build-and-push-frontend
     steps:
+
+      - name: Install Scaleway CLI (again)
+        run: |
+          curl -fsSL https://github.com/scaleway/scaleway-cli/releases/download/v2.37.0/scaleway-cli_2.37.0_linux_amd64 -o scw
+          chmod +x scw
+          sudo mv scw /usr/local/bin/scw
+          echo "/usr/local/bin" >> $GITHUB_PATH
+          which scw
+          scw version
+
       - name: Deploy frontend container
         run: |
           scw container container update 25ce846e-43ef-45aa-8550-2cc99ce18a8e \
