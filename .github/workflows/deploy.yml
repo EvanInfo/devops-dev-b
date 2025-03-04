@@ -20,8 +20,12 @@ jobs:
           sudo mv scw /usr/local/bin/
           echo "/usr/local/bin" >> $GITHUB_PATH # Ajoute au PATH de GitHub Actions
 
-      - name: Verify Scaleway CLI installation
-        run: scw version
+      - name: Ensure Scaleway CLI is installed and accessible
+        run: |
+          sudo mv /usr/local/bin/scw /usr/bin/scw
+          echo "/usr/bin" >> $GITHUB_PATH
+          which scw
+          scw version
 
       - name: Log in to Scaleway Container Registry
         run: echo "${{ secrets.SCW_SECRET_KEY }}" | docker login rg.fr-par.scw.cloud -u _json_key --password-stdin
