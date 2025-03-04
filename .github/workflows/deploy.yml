@@ -85,6 +85,11 @@ jobs:
           echo "🔍 Liste des conteneurs existants..."
           scw container container list -o json | jq '.'
 
+      - name: Debug Scaleway Containers (with Project ID)
+        run: |
+          echo "🔍 Liste des conteneurs pour ton projet..."
+          scw container container list project-id=${{ secrets.SCW_PROJECT_ID }} -o json | jq '.'
+
       - name: Deploy backend container
         run: |
           scw container container update 25ce846e-43ef-45aa-8550-2cc99ce18a8e \
