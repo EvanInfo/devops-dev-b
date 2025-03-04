@@ -27,6 +27,14 @@ jobs:
           which scw
           scw version
 
+      - name: Debug PATH and Scaleway CLI
+        run: |
+          echo "📂 PATH: $PATH"
+          ls -lah /usr/local/bin/
+          ls -lah /usr/bin/
+          which scw || echo "❌ scw introuvable"
+          scw version || echo "❌ Impossible d'exécuter scw"
+
       - name: Log in to Scaleway Container Registry
         run: echo "${{ secrets.SCW_SECRET_KEY }}" | docker login rg.fr-par.scw.cloud -u _json_key --password-stdin
 
