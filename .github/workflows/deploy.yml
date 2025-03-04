@@ -18,18 +18,7 @@ jobs:
           curl -fsSL https://github.com/scaleway/scaleway-cli/releases/download/v2.37.0/scaleway-cli_2.37.0_linux_amd64 -o scw
           chmod +x scw
           sudo mv scw /usr/local/bin/
-          echo "/usr/local/bin" >> $GITHUB_PATH # Ajoute au PATH de GitHub Actions
-
-
-      - name: Debug Scaleway CLI
-        run: |
-          echo "🔍 Vérification de l'installation de scw..."
-          ls -lah /usr/local/bin/ | grep scw || echo "❌ scw introuvable dans /usr/local/bin"
-          ls -lah /usr/bin/ | grep scw || echo "❌ scw introuvable dans /usr/bin"
-          which scw || echo "❌ which ne trouve pas scw"
-          command -v scw || echo "❌ command -v ne trouve pas scw"
-          scw version || echo "❌ Impossible d'exécuter scw"
-      
+          echo "/usr/local/bin" >> $GITHUB_PATH
 
       - name: Log in to Scaleway Container Registry
         run: echo "${{ secrets.SCW_SECRET_KEY }}" | docker login rg.fr-par.scw.cloud -u _json_key --password-stdin
@@ -53,23 +42,15 @@ jobs:
     outputs:
       backend_url: ${{ steps.set-backend-url.outputs.BACKEND_URL }}
     steps:
-
-      - name: Install Scaleway CLI (again)
+      - name: Install Scaleway CLI
         run: |
           curl -fsSL https://github.com/scaleway/scaleway-cli/releases/download/v2.37.0/scaleway-cli_2.37.0_linux_amd64 -o scw
           chmod +x scw
           sudo mv scw /usr/local/bin/scw
           echo "/usr/local/bin" >> $GITHUB_PATH
-          which scw
-          scw version
 
       - name: Log in to Scaleway Container Registry
         run: echo "${{ secrets.SCW_SECRET_KEY }}" | docker login rg.fr-par.scw.cloud -u _json_key --password-stdin
-
-      - name: Ensure Scaleway CLI config directory exists
-        run: |
-          mkdir -p /home/runner/.config/scw
-          touch /home/runner/.config/scw/config.yaml
 
       - name: Configure Scaleway CLI authentication
         run: |
@@ -83,65 +64,21 @@ jobs:
           CONTAINER_ID=$(scw container container list namespace-id=25ce846e-43ef-45aa-8550-2cc99ce18a8e -o json | jq -r '.[] | select(.name=="my-backend-container") | .id')
 
           if [ -z "$CONTAINER_ID" ]; then
-            echo "⚠️ Aucun conteneur backend trouvé, création en cours..."
             scw container container create \
               name=my-backend-container \
               namespace-id=25ce846e-43ef-45aa-8550-2cc99ce18a8e \
               registry-image=rg.fr-par.scw.cloud/namespace-zucchiatti-evan/zucchiattievalback:latest \
               min-scale=0 max-scale=1 cpu-limit=100 memory-limit=128 \
               port=3000
-          else
-            echo "✅ Le conteneur backend existe déjà avec l'ID : $CONTAINER_ID"
-          fi
-
-      - name: Retrieve Backend Container ID
-        run: |
-          echo "🔍 Recherche de l'ID du conteneur backend..."
-
-          BACKEND_CONTAINER_ID=""
-          for i in {1..24}; do
-            BACKEND_CONTAINER_ID=$(scw container container list namespace-id=25ce846e-43ef-45aa-8550-2cc99ce18a8e -o json | jq -r '.[] | select(.name=="my-backend-container") | .id')
-
-            if [ -n "$BACKEND_CONTAINER_ID" ] && [ "$BACKEND_CONTAINER_ID" != "null" ]; then
-              echo "✅ ID du conteneur backend trouvé : $BACKEND_CONTAINER_ID"
-              echo "BACKEND_CONTAINER_ID=$BACKEND_CONTAINER_ID" >> $GITHUB_ENV
-              break
-            fi
-
-            echo "⏳ Conteneur non trouvé, nouvelle tentative dans 5s..."
-            sleep 5
-          done
-
-          if [ -z "$BACKEND_CONTAINER_ID" ] || [ "$BACKEND_CONTAINER_ID" == "null" ]; then
-            echo "❌ Impossible de trouver l'ID du conteneur backend après 2 minutes."
-            exit 1
           fi
 
       - name: Retrieve Backend URL
         id: set-backend-url
         run: |
-          echo "🔍 Récupération de l'URL du backend..."
-
           BACKEND_URL=$(scw container container get ${{ env.BACKEND_CONTAINER_ID }} -o json | jq -r '.domain_name')
-
-          if [ -z "$BACKEND_URL" ] || [ "$BACKEND_URL" == "null" ]; then
-            echo "❌ Impossible de récupérer l'URL du backend."
-            exit 1
-          fi
-
-          # Ajout de https:// devant l'URL
           BACKEND_URL="https://${BACKEND_URL}"
-
-          echo "✅ URL du backend récupérée : $BACKEND_URL"
           echo "BACKEND_URL=$BACKEND_URL" >> $GITHUB_ENV
-          echo "::set-output name=BACKEND_URL::$BACKEND_URL"  # 🔥 Stocke `BACKEND_URL` pour les autres jobs
-
-      - name: Vérifier l'URL du backend
-        run: |
-          echo "🔍 Vérification de BACKEND_URL après export : ${{ env.BACKEND_URL }}"
-  
-  
-  
+          echo "::set-output name=BACKEND_URL::$BACKEND_URL"
 
   build-and-push-frontend:
     name: Build and Push Frontend Image
@@ -153,80 +90,43 @@ jobs:
       - name: Checkout repository
         uses: actions/checkout@v4
 
-      - name: Install Scaleway CLI (again)
+      - name: Install Scaleway CLI
         run: |
           curl -fsSL https://github.com/scaleway/scaleway-cli/releases/download/v2.37.0/scaleway-cli_2.37.0_linux_amd64 -o scw
           chmod +x scw
           sudo mv scw /usr/local/bin/scw
           echo "/usr/local/bin" >> $GITHUB_PATH
-          which scw
-          scw version
 
       - name: Log in to Scaleway Container Registry
         run: echo "${{ secrets.SCW_SECRET_KEY }}" | docker login rg.fr-par.scw.cloud -u _json_key --password-stdin
 
-      - name: Vérifier l'URL du backend avant le build
-        run: |
-          if [ -z "$BACKEND_URL" ]; then
-            echo "❌ BACKEND_URL est vide. Annulation du déploiement du frontend."
-            exit 1
-          fi
-          echo "✅ BACKEND_URL correctement défini : $BACKEND_URL"
-
       - name: Build and push frontend image
         run: |
-          echo "🔍 Construction de l'image avec VITE_API_URL=${BACKEND_URL}"
-
           docker build \
             --build-arg VITE_API_URL=${BACKEND_URL} \
             -t rg.fr-par.scw.cloud/namespace-zucchiatti-evan/zucchiattievalfront:latest ./front
-
           docker push rg.fr-par.scw.cloud/namespace-zucchiatti-evan/zucchiattievalfront:latest
-      
-  
 
   deploy-frontend:
     name: Deploy Frontend
     runs-on: ubuntu-latest
     needs: build-and-push-frontend
     steps:
-
-      - name: Install Scaleway CLI (again)
+      - name: Install Scaleway CLI
         run: |
           curl -fsSL https://github.com/scaleway/scaleway-cli/releases/download/v2.37.0/scaleway-cli_2.37.0_linux_amd64 -o scw
           chmod +x scw
           sudo mv scw /usr/local/bin/scw
           echo "/usr/local/bin" >> $GITHUB_PATH
-          which scw
-          scw version
 
       - name: Log in to Scaleway Container Registry
         run: echo "${{ secrets.SCW_SECRET_KEY }}" | docker login rg.fr-par.scw.cloud -u _json_key --password-stdin
 
-      - name: Ensure Scaleway CLI config directory exists
-        run: |
-          mkdir -p /home/runner/.config/scw
-          touch /home/runner/.config/scw/config.yaml
-
-      - name: Configure Scaleway CLI authentication
-        run: |
-          scw config set access-key=${{ secrets.SCW_ACCESS_KEY }}
-          scw config set secret-key=${{ secrets.SCW_SECRET_KEY }}
-          scw config set default-organization-id=${{ secrets.SCW_ORGANIZATION_ID }}
-          scw config set default-project-id=${{ secrets.SCW_PROJECT_ID }}
-
-      - name: Vérifier l'URL du backend avant le déploiement
-        run: |
-          echo "🔍 URL du backend utilisée pour le frontend : ${{ env.BACKEND_URL }}"
-
       - name: Deploy Frontend Container
         run: |
-          echo "🔍 Recherche de l'ID du conteneur frontend..."
-          
           FRONTEND_CONTAINER_ID=$(scw container container list namespace-id=25ce846e-43ef-45aa-8550-2cc99ce18a8e -o json | jq -r '.[] | select(.name=="my-frontend-container") | .id')
           
           if [ -z "$FRONTEND_CONTAINER_ID" ]; then
-            echo "⚠️ Aucun conteneur frontend trouvé, création en cours..."
             scw container container create \
               name=my-frontend-container \
               namespace-id=25ce846e-43ef-45aa-8550-2cc99ce18a8e \
@@ -235,20 +135,9 @@ jobs:
               port=80 \
               environment-variables.VITE_API_URL=${{ env.BACKEND_URL }}
           else
-            echo "✅ Le conteneur frontend existe déjà avec l'ID : $FRONTEND_CONTAINER_ID"
-            echo "🔄 Mise à jour du conteneur frontend..."
             scw container container update $FRONTEND_CONTAINER_ID \
               registry-image=rg.fr-par.scw.cloud/namespace-zucchiatti-evan/zucchiattievalfront:latest \
               min-scale=0 max-scale=1 cpu-limit=100 memory-limit=128 \
               port=80 \
               environment-variables.VITE_API_URL=${{ env.BACKEND_URL }}
           fi
-
-      - name: Vérifier la variable VITE_API_URL après le déploiement
-        run: |
-          echo "🔍 Récupération des variables d'environnement du frontend..."
-          scw container container get ${{ env.FRONTEND_CONTAINER_ID }} -o json | jq '.environment_variables'
-
-      - name: Verify Deployment
-        run: |
-          scw container container list
