@@ -116,27 +116,6 @@ jobs:
             exit 1
           fi
 
-      - name: Wait for Backend to be Ready
-        run: |
-          echo "⏳ Attente que le backend soit prêt..."
-
-          for i in {1..12}; do
-            STATUS=$(scw container container get ${{ env.BACKEND_CONTAINER_ID }} -o json | jq -r '.status')
-
-            if [ "$STATUS" == "ready" ]; then
-              echo "✅ Conteneur backend prêt !"
-              break
-            fi
-
-            echo "⏳ Statut actuel : $STATUS. Nouvelle tentative dans 5s..."
-            sleep 5
-          done
-
-          if [ "$STATUS" != "ready" ]; then
-            echo "❌ Le backend ne s'est pas déployé après 60 secondes."
-            exit 1
-          fi
-
       - name: Retrieve Backend URL
         run: |
           echo "🔍 Récupération de l'URL du backend..."
@@ -150,6 +129,7 @@ jobs:
 
           echo "✅ URL du backend récupérée : $BACKEND_URL"
           echo "BACKEND_URL=$BACKEND_URL" >> $GITHUB_ENV
+  
 
   build-and-push-frontend:
     name: Build and Push Frontend Image
