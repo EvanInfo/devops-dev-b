@@ -175,11 +175,14 @@ jobs:
 
       - name: Build and push frontend image
         run: |
+          echo "🔍 Construction de l'image avec VITE_API_URL=${BACKEND_URL}"
+
           docker build \
             --build-arg VITE_API_URL=${BACKEND_URL} \
             -t rg.fr-par.scw.cloud/namespace-zucchiatti-evan/zucchiattievalfront:latest ./front
 
           docker push rg.fr-par.scw.cloud/namespace-zucchiatti-evan/zucchiattievalfront:latest
+      
 
       - name: Vérifier l'URL du backend après le build
         run: |
