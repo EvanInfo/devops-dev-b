@@ -78,8 +78,7 @@ jobs:
 
       - name: Debug Scaleway CLI Configuration
         run: |
-          scw config show
-      
+          scw config dump
 
       - name: Verify Existing Containers
         run: |
