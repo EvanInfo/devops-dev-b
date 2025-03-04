@@ -132,6 +132,11 @@ jobs:
 
           echo "✅ URL du backend récupérée : $BACKEND_URL"
           echo "BACKEND_URL=$BACKEND_URL" >> $GITHUB_ENV
+
+      - name: Vérifier l'URL du backend dans $GITHUB_ENV
+        run: |
+          echo "🔍 Vérification de BACKEND_URL après export : $BACKEND_URL"
+  
   
 
   build-and-push-frontend:
