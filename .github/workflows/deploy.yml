@@ -98,7 +98,7 @@ jobs:
           echo "🔍 Recherche de l'ID du conteneur backend..."
 
           BACKEND_CONTAINER_ID=""
-          for i in {1..12}; do
+          for i in {1..24}; do
             BACKEND_CONTAINER_ID=$(scw container container list namespace-id=25ce846e-43ef-45aa-8550-2cc99ce18a8e -o json | jq -r '.[] | select(.name=="my-backend-container") | .id')
 
             if [ -n "$BACKEND_CONTAINER_ID" ] && [ "$BACKEND_CONTAINER_ID" != "null" ]; then
@@ -126,6 +126,9 @@ jobs:
             echo "❌ Impossible de récupérer l'URL du backend."
             exit 1
           fi
+
+          # Ajout de https:// devant l'URL
+          BACKEND_URL="https://${BACKEND_URL}"
 
           echo "✅ URL du backend récupérée : $BACKEND_URL"
           echo "BACKEND_URL=$BACKEND_URL" >> $GITHUB_ENV
@@ -188,10 +191,12 @@ jobs:
           scw config set default-organization-id=${{ secrets.SCW_ORGANIZATION_ID }}
           scw config set default-project-id=${{ secrets.SCW_PROJECT_ID }}
 
-      - name: Deploy frontend container
+      - name: Deploy Frontend Container
         run: |
+          echo "🔍 Recherche de l'ID du conteneur frontend..."
+          
           FRONTEND_CONTAINER_ID=$(scw container container list namespace-id=25ce846e-43ef-45aa-8550-2cc99ce18a8e -o json | jq -r '.[] | select(.name=="my-frontend-container") | .id')
-
+          
           if [ -z "$FRONTEND_CONTAINER_ID" ]; then
             echo "⚠️ Aucun conteneur frontend trouvé, création en cours..."
             scw container container create \
@@ -200,7 +205,7 @@ jobs:
               registry-image=rg.fr-par.scw.cloud/namespace-zucchiatti-evan/zucchiattievalfront:latest \
               min-scale=0 max-scale=1 cpu-limit=100 memory-limit=128 \
               port=80 \
-              env.VITE_API_URL=${{ env.BACKEND_URL }}
+              environment-variables.VITE_API_URL=${{ env.BACKEND_URL }}
           else
             echo "✅ Le conteneur frontend existe déjà avec l'ID : $FRONTEND_CONTAINER_ID"
             echo "🔄 Mise à jour du conteneur frontend..."
@@ -208,7 +213,7 @@ jobs:
               registry-image=rg.fr-par.scw.cloud/namespace-zucchiatti-evan/zucchiattievalfront:latest \
               min-scale=0 max-scale=1 cpu-limit=100 memory-limit=128 \
               port=80 \
-              env.VITE_API_URL=${{ env.BACKEND_URL }}
+              environment-variables.VITE_API_URL=${{ env.BACKEND_URL }}
           fi
       
 
