@@ -1,3 +1,10 @@
+name: Deploy to Scaleway
+
+on:
+  push:
+    branches:
+      - Exo-Eval
+
 jobs:
   build-and-push-backend:
     name: Build and Push Backend Image
