@@ -78,8 +78,8 @@ jobs:
 
       - name: Debug Scaleway CLI Configuration
         run: |
-          echo "🔍 Vérification de la configuration Scaleway CLI..."
-          scw config get
+          scw config show
+      
 
       - name: Verify Existing Containers
         run: |
