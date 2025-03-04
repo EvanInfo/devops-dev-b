@@ -191,6 +191,10 @@ jobs:
           scw config set default-organization-id=${{ secrets.SCW_ORGANIZATION_ID }}
           scw config set default-project-id=${{ secrets.SCW_PROJECT_ID }}
 
+      - name: Vérifier l'URL du backend avant le déploiement
+        run: |
+          echo "🔍 URL du backend utilisée pour le frontend : ${{ env.BACKEND_URL }}"
+
       - name: Deploy Frontend Container
         run: |
           echo "🔍 Recherche de l'ID du conteneur frontend..."
@@ -215,7 +219,11 @@ jobs:
               port=80 \
               environment-variables.VITE_API_URL=${{ env.BACKEND_URL }}
           fi
-      
+
+      - name: Vérifier la variable VITE_API_URL après le déploiement
+        run: |
+          echo "🔍 Récupération des variables d'environnement du frontend..."
+          scw container container get ${{ env.FRONTEND_CONTAINER_ID }} -o json | jq '.environment_variables'
 
       - name: Verify Deployment
         run: |
