@@ -102,11 +102,11 @@ jobs:
               namespace-id=25ce846e-43ef-45aa-8550-2cc99ce18a8e \
               registry-image=rg.fr-par.scw.cloud/funcscwnszucchiattievanbceqxgdg/zucchiattievalback:latest \
               min-scale=0 max-scale=1 cpu-limit=100 memory-limit=128 \
-              port=3000 \
-              --region=fr-par
+              port=3000
           else
             echo "✅ Le conteneur backend existe déjà avec l'ID : $CONTAINER_ID"
           fi
+      
       
 
       - name: Retrieve backend URL
@@ -170,7 +170,6 @@ jobs:
 
       - name: Deploy frontend container
         run: |
-          # Récupérer l'ID du conteneur frontend s'il existe déjà
           FRONTEND_CONTAINER_ID=$(scw container container list namespace-id=25ce846e-43ef-45aa-8550-2cc99ce18a8e -o json | jq -r '.[] | select(.name=="my-frontend-container") | .id')
 
           if [ -z "$FRONTEND_CONTAINER_ID" ]; then
@@ -181,8 +180,7 @@ jobs:
               registry-image=rg.fr-par.scw.cloud/namespace-zucchiatti-evan/zucchiattievalfront:latest \
               min-scale=0 max-scale=1 cpu-limit=100 memory-limit=128 \
               port=80 \
-              env.VITE_API_URL=${{ env.BACKEND_URL }} \
-              --region=fr-par
+              env.VITE_API_URL=${{ env.BACKEND_URL }}
           else
             echo "✅ Le conteneur frontend existe déjà avec l'ID : $FRONTEND_CONTAINER_ID"
             echo "🔄 Mise à jour du conteneur frontend..."
@@ -190,9 +188,9 @@ jobs:
               registry-image=rg.fr-par.scw.cloud/namespace-zucchiatti-evan/zucchiattievalfront:latest \
               min-scale=0 max-scale=1 cpu-limit=100 memory-limit=128 \
               port=80 \
-              env.VITE_API_URL=${{ env.BACKEND_URL }} \
-              --region=fr-par
+              env.VITE_API_URL=${{ env.BACKEND_URL }}
           fi
+      
 
       - name: Verify Deployment
         run: |
