@@ -76,6 +76,11 @@ jobs:
           scw config set default-organization-id=${{ secrets.SCW_ORGANIZATION_ID }}
           scw config set default-project-id=${{ secrets.SCW_PROJECT_ID }}
 
+      - name: Verify Existing Containers
+        run: |
+          echo "🔍 Liste des conteneurs existants..."
+          scw container container list -o json | jq '.'
+
       - name: Deploy backend container
         run: |
           scw container container update 25ce846e-43ef-45aa-8550-2cc99ce18a8e \
