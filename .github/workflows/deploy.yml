@@ -90,23 +90,21 @@ jobs:
           echo "🔍 Liste des conteneurs pour ton projet..."
           scw container container list project-id=${{ secrets.SCW_PROJECT_ID }} -o json | jq '.'
 
-      - name: Deploy backend container
+      - name: Deploy Backend Container
         run: |
-          # Vérifie si le conteneur existe déjà
           CONTAINER_ID=$(scw container container list namespace-id=25ce846e-43ef-45aa-8550-2cc99ce18a8e -o json | jq -r '.[] | select(.name=="my-backend-container") | .id')
 
           if [ -z "$CONTAINER_ID" ]; then
-            echo "⚠️ Aucun conteneur trouvé, création du backend..."
+            echo "⚠️ Aucun conteneur backend trouvé, création en cours..."
             scw container container create \
               name=my-backend-container \
               namespace-id=25ce846e-43ef-45aa-8550-2cc99ce18a8e \
-              registry-image=rg.fr-par.scw.cloud/funcscwnszucchiattievanbceqxgdg/zucchiattievalback:latest \
+              registry-image=rg.fr-par.scw.cloud/namespace-zucchiatti-evan/zucchiattievalback:latest \
               min-scale=0 max-scale=1 cpu-limit=100 memory-limit=128 \
               port=3000
           else
             echo "✅ Le conteneur backend existe déjà avec l'ID : $CONTAINER_ID"
           fi
-      
       
 
       - name: Retrieve backend URL
