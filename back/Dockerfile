@@ -20,7 +20,10 @@ COPY . .
 # Étape 6 : Générer le client Prisma
 RUN npx prisma generate
 
+RUN npx prisma db push
+
 RUN npx prisma db seed
+
 # Étape 7 : Exposer le port
 EXPOSE 3000
 
