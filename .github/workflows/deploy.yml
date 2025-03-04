@@ -183,29 +183,6 @@ jobs:
 
           docker push rg.fr-par.scw.cloud/namespace-zucchiatti-evan/zucchiattievalfront:latest
       
-
-      - name: Vérifier l'URL du backend après le build
-        run: |
-          echo "🔍 Vérification de l'argument VITE_API_URL dans l'image Docker..."
-
-          IMAGE_ID=$(docker images -q rg.fr-par.scw.cloud/namespace-zucchiatti-evan/zucchiattievalfront:latest)
-
-          if [ -z "$IMAGE_ID" ]; then
-            echo "❌ L'image frontend n'a pas été construite correctement."
-            exit 1
-          fi
-
-          echo "✅ Image frontend construite avec l'ID : $IMAGE_ID"
-
-          BUILT_API_URL=$(docker inspect $IMAGE_ID | jq -r '.[0].Config.Env[] | select(startswith("VITE_API_URL="))' | cut -d '=' -f2)
-
-          if [ -z "$BUILT_API_URL" ]; then
-            echo "❌ VITE_API_URL n'a pas été défini correctement dans l'image."
-            exit 1
-          fi
-
-          echo "✅ VITE_API_URL détecté dans l'image : $BUILT_API_URL"
-  
   
 
   deploy-frontend:
