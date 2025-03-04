@@ -17,7 +17,12 @@ jobs:
         run: |
           curl -fsSL https://github.com/scaleway/scaleway-cli/releases/download/v2.37.0/scaleway-cli_2.37.0_linux_amd64 -o scw
           chmod +x scw
-          sudo mv scw /usr/local/bin/scw
+          sudo mv scw /usr/local/bin/
+          echo "/usr/local/bin" >> $GITHUB_PATH # Ajoute au PATH de GitHub Actions
+
+      - name: Verify Scaleway CLI installation
+        run: scw --version
+
 
       - name: Log in to Scaleway Container Registry
         run: echo "${{ secrets.SCW_SECRET_KEY }}" | docker login rg.fr-par.scw.cloud -u _json_key --password-stdin
