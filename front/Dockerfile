@@ -6,30 +6,21 @@ WORKDIR /app
 # Étape 2 : Copier uniquement package.json
 COPY package.json ./
 
-# 🔥 Générer package-lock.json si absent
-RUN npm install --package-lock-only
+# 🔥 Étape 3 : Installer les dépendances et générer package-lock.json
+RUN npm install
 
-# Étape 3 : Copier package-lock.json après sa génération
-COPY package-lock.json ./
-
-# Étape 4 : Installer les dépendances
-RUN npm ci --only=production
-
-# Étape 5 : Copier le reste des fichiers
+# Étape 4 : Copier le reste des fichiers
 COPY . .
 
-# Étape 6 : Définir l'URL de l'API au build
+# Étape 5 : Passer la variable d'environnement au build
 ARG VITE_API_URL
 ENV VITE_API_URL=${VITE_API_URL}
 
-RUN echo "🚀 VITE_API_URL au build : $VITE_API_URL"  # Debugging
-
-# Étape 7 : Construire le frontend
+RUN echo "🚀 VITE_API_URL au build : $VITE_API_URL"
 RUN npm run build
 
-# Étape 8 : Utiliser Nginx pour servir le frontend
+# Étape 6 : Utiliser Nginx pour servir les fichiers statiques
 FROM nginx:alpine
 COPY --from=build /app/dist /usr/share/nginx/html
-
 EXPOSE 80
 CMD ["nginx", "-g", "daemon off;"]
