@@ -64,6 +64,11 @@ jobs:
       - name: Log in to Scaleway Container Registry
         run: echo "${{ secrets.SCW_SECRET_KEY }}" | docker login rg.fr-par.scw.cloud -u _json_key --password-stdin
 
+      - name: Ensure Scaleway CLI config directory exists
+        run: |
+          mkdir -p /home/runner/.config/scw
+          touch /home/runner/.config/scw/config.yaml
+
       - name: Configure Scaleway CLI authentication
         run: |
           scw config set access-key=${{ secrets.SCW_ACCESS_KEY }}
@@ -82,6 +87,7 @@ jobs:
         run: |
           BACKEND_URL=$(scw container container get 25ce846e-43ef-45aa-8550-2cc99ce18a8e -o json | jq -r '.domain_name')
           echo "BACKEND_URL=$BACKEND_URL" >> $GITHUB_ENV
+  
   
 
   build-and-push-frontend:
