@@ -47,6 +47,12 @@ jobs:
     runs-on: ubuntu-latest
     needs: build-and-push-backend
     steps:
+
+      - name: Debug Scaleway CLI
+        run: |
+          which scw || echo "❌ scw introuvable"
+          scw version || echo "❌ Impossible d'exécuter scw"
+
       - name: Deploy backend container
         run: |
           /usr/bin/scw container container update 25ce846e-43ef-45aa-8550-2cc99ce18a8e \
