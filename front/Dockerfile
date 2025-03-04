@@ -22,5 +22,9 @@ RUN npm run build
 # Étape 6 : Utiliser Nginx pour servir les fichiers statiques
 FROM nginx:alpine
 COPY --from=build /app/dist /usr/share/nginx/html
+
+# 🔥 Assurer que la variable VITE_API_URL est définie dans l'environnement du container final
+ENV VITE_API_URL=${VITE_API_URL}
+
 EXPOSE 80
 CMD ["nginx", "-g", "daemon off;"]
